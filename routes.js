@@ -1,6 +1,6 @@
-var TravelLocation = require('./app/models/TravelLocation');
-var LocationFeature = require('./app/models/LocationFeature');
-var FeatureRating = require('./app/models/FeatureRating');
+const TravelLocation = require('./app/models/TravelLocation');
+const LocationFeature = require('./app/models/LocationFeature');
+const FeatureRating = require('./app/models/FeatureRating');
 
 function getTravelLocations(res) {
     TravelLocation.find(function (err, locations) {
@@ -82,7 +82,7 @@ module.exports = function (app) {
     });
 
     app.get('/', function (req, res) {
-        res.sendFile(__dirname + '/public/travelLocations.html');
+        res.sendFile(__dirname + '/public/index.html');
     });
     
     app.get('/travelLocations', function (req, res) {
