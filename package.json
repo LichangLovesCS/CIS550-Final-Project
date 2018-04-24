@@ -1,16 +1,23 @@
 {
-  "name": "node-todo",
+  "name": "CIS550_Final",
   "version": "0.0.1",
-  "description": "Simple todo application.",
+  "description": "Travel App",
   "main": "server.js",
-  "author": "Scotch",
+  "author": "CIS 550 Squad",
   "dependencies": {
     "body-parser": "^1.18.2",
     "express": "^4.10.8",
+    "ejs": "~2.5.2",
     "method-override": "^2.3.10",
     "mongoose": "4.10.8",
     "morgan": "^1.9.0",
+    "passport": "~0.3.2",
+    "passport-local": "~1.0.0",
+    "passport-facebook": "~2.1.1",
+    "bcrypt-nodejs": "latest",
+    "connect-flash": "~0.1.1",
     "ngmap": "^1.18.4",
-    "nodemon": "^1.17.3"
+    "nodemon": "^1.17.3",
+    "express-session": "~1.14.1"
   }
 }
