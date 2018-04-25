@@ -105,7 +105,8 @@ module.exports = function (app, passport) {
         res.render('signup.ejs', {message: req.flash('signupMessage')});
     });
 
-    app.get('/profile', isLoggedIn, function (req, res) {
+    app.get('/profile.ejs', function (req, res) {
+        console.log(req.user);
         res.render('profile.ejs', {
             user: req.user // get the user out of session and pass to template
         });
@@ -119,7 +120,7 @@ module.exports = function (app, passport) {
     app.get('/auth/facebook/callback',
         passport.authenticate('facebook', {
             successRedirect: '/profile',
-            failureRedirect: '/'
+            failureRedirect: '/signup'
         }));
 
     app.get('/logout', function (req, res) {

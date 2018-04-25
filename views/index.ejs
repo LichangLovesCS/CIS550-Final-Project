@@ -18,6 +18,43 @@
 </head>
 <body>
 
+<div id="fb-root"></div>
+<script>
+    window.fbAsyncInit = function () {
+        FB.init({
+            appId: '1984894625096320',
+            xfbml: true,
+            version: 'v2.12'
+        });
+        FB.Event.subscribe('auth.login', function () {
+            window.location.href = "profile.ejs";
+        });
+        FB.getLoginStatus(function (response) {
+            if (response.status === 'connected') {
+                // the user is logged in and has authenticated your
+                // app, and response.authResponse supplies
+                // the user's ID, a valid access token, a signed
+                // request, and the time the access token
+                // and signed request each expire
+                var uid = response.authResponse.userID;
+                var accessToken = response.authResponse.accessToken;
+            } else if (response.status === 'not_authorized') {
+            } else {
+            }
+        });
+    };
+
+    (function (d, s, id) {
+        var js, fjs = d.getElementsByTagName(s)[0];
+        if (d.getElementById(id)) {
+            return;
+        }
+        js = d.createElement(s);
+        js.id = id;
+        js.src = "https://connect.facebook.net/en_US/sdk.js";
+        fjs.parentNode.insertBefore(js, fjs);
+    }(document, 'script', 'facebook-jssdk'));
+</script>
 <div id="container">
     <div id="overlay">
         <!--Mask-->
@@ -27,16 +64,14 @@
                     <li>
                         <h1 class="font-weight-bold text-uppercase">Find your perfect getaway</h1>
                     </li>
-                    <!--<li>-->
-                    <!--<p class="font-weight-bold text-uppercase py-4">Use our powerful engine to find your next destination</p>-->
-                    <!--</li>-->
                     <li class="list-inline-item">
                         <a target="_blank" href="./travelLocations.html"
                            class="btn btn-unique btn-lg btn-rounded mr-0 waves-effect waves-light">Browse Locations</a>
                     </li>
-                    <li class="list-inline-item">
-                        <a target="_blank" href="./login.ejs"
-                           class="btn btn-facebook btn-lg btn-rounded ml-0 waves-effect waves-light">Sign in with Facebook</a>
+                    <li>
+                        <fb:login-button class="fb-login-button" data-width="50" data-max-rows="1" data-size="large"
+                                         data-button-type="login_with" data-show-faces="false"
+                                         data-use-continue-as="false" autologoutlink="true"></fb:login-button>
                     </li>
                 </ul>
             </div>
