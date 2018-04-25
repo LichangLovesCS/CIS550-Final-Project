@@ -5,8 +5,53 @@
     <title>Title</title>
 </head>
 <body>
+<div id="fb-root"></div>
+<script>
+    window.fbAsyncInit = function () {
+        FB.init({
+            appId: '1984894625096320',
+            xfbml: true,
+            version: 'v2.12'
+        });
+        FB.Event.subscribe('auth.login', function () {
+            window.location.href = "profile.ejs";
+        });
+        FB.Event.subscribe('auth.logout', function() {
+            window.location.href = "/";
+        });
+        FB.getLoginStatus(function (response) {
+            if (response.status === 'connected') {
+                // the user is logged in and has authenticated your
+                // app, and response.authResponse supplies
+                // the user's ID, a valid access token, a signed
+                // request, and the time the access token
+                // and signed request each expire
+                var uid = response.authResponse.userID;
+                var accessToken = response.authResponse.accessToken;
+                console.log("message 1");
+            } else if (response.status === 'not_authorized') {
+                console.log("message 2");
+            } else {
+                console.log("message 3");
+            }
+        });
+    };
 
-THIS IS my profile!!!!
+    (function (d, s, id) {
+        var js, fjs = d.getElementsByTagName(s)[0];
+        if (d.getElementById(id)) {
+            return;
+        }
+        js = d.createElement(s);
+        js.id = id;
+        js.src = "https://connect.facebook.net/en_US/sdk.js";
+        fjs.parentNode.insertBefore(js, fjs);
+    }(document, 'script', 'facebook-jssdk'));
+</script>
+
+<fb:login-button class="fb-login-button" data-width="50" data-max-rows="1" data-size="medium"
+                 data-button-type="login_with" data-show-faces="false"
+                 data-use-continue-as="true" autologoutlink="true" delay="100ms"></fb:login-button>
 
 </body>
 </html>
