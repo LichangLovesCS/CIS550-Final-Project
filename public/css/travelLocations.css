@@ -1,6 +1,15 @@
 html, body {
 	/*background: #ccc;*/
 }
+#navigation a {
+	display: inline-block;
+	width: 50%;
+	height: 50px;
+	background: #fff;
+	box-sizing: border-box;
+	padding: 15px;
+	text-align: center;
+}
 #upper_map {
 	width: 100%;
 	text-align: center;
@@ -9,6 +18,10 @@ html, body {
 #upper_map > * {
 	width: 100%;
 	height: 100% !important;
+}
+.btn {
+	margin: 5px;
+	margin-left: 20px;
 }
 #controls {
 	width: 100%;
@@ -50,6 +63,9 @@ label {
 label:not(:first-child) {
 	margin-top: 20px;
 }
+#query_controls {
+	overflow-x: hidden;
+}
 #query_controls input[type="text"] {
 	width: 90%;
 	margin: 0 auto;
@@ -74,6 +90,10 @@ label:not(:first-child) {
 	margin: 0px auto;
 	display: block;
 }
+#location_results {
+	height: 520px;
+	overflow-y: scroll;
+}
 .location {
 	padding: 5px;
 }
@@ -83,4 +103,19 @@ label:not(:first-child) {
 }
 .location:hover {
 	cursor: pointer;
+}
+.disabled {
+	color: #222;
+}
+.disabled:hover {
+	cursor: default;
+	color: #222;
+	text-decoration: none;
+}
+#sorts {
+	margin-top: 30px;
+}
+#sorts > * {
+	text-align: left;
+	margin-left: 40px;
 }

@@ -17,125 +17,83 @@ module.exports = function (app, passport) {
 	// API call for Location Browser
     app.get('/api/LocationBrowser/:name/:accommodations/:restaurants/:attractions', function (req, res) {
 
-        console.log(req.params);
+		// RETURN RESULTS WITH AVERAGE RATINGS HIGHER THAN THE ONES BELOW, OR NOT AT ALL IF -1
         var name = req.params.name;
         var accommodations = req.params.accommodations;
         var restaurants = req.params.restaurants;
         var attractions = req.params.attractions;
         res.json([
         	{
-				title: "Test1",
+				name: "Test1",
+				address: "2374 JKHjhs Rd",
 				lat: 50,
 				lng: 30,
-				accommodations: [],
-				restaurants: [],
-				attractions: [],
+				type: "Accomodation",
+				rating: 4.5,
         	},
         	{
-				title: "Test2",
+				name: "Test2",
+				address: "2374 JKHjhs Rd",
 				lat: 55,
 				lng: 31,
-				accommodations: [],
-				restaurants: [],
-				attractions: [],
+				type: "Restaurant",
+				rating: 4.5,
         	},
         	{
-				title: "Test3",
+				name: "Test3",
+				address: "2374 JKHjhs Rd",
 				lat: 52,
 				lng: 35,
-				accommodations: [],
-				restaurants: [],
-				attractions: [],
+				type: "Accomodation",
+				rating: 4.5,
         	},
         ]);
 
     });
     
     // API call for Area Browser
-    app.get('/api/AreaBrowser', function (req, res) {
-
+    app.get('/api/AreaBrowser/:left/:bottom/:top/:right/:sort', function (req, res) {
+		
+		
+		var left = req.params.left;
+		var right = req.params.right;
+		var top = req.params.top;
+		var bottom = req.params.bottom;
+		
+		var sort = req.params.sort;
+		
+		// RETURN RESULTS WITHIN THESE BOUNDS
+        
+		res.json([
+        	{
+				name: "Test1",
+				address: "2374 JKHjhs Rd",
+				lat: 50,
+				lng: 30,
+				type: "Accomodation",
+				rating: 4.5,
+        	},
+        	{
+				name: "Test2",
+				address: "2374 JKHjhs Rd",
+				lat: 55,
+				lng: 31,
+				type: "Restaurant",
+				rating: 4.5,
+        	},
+        	{
+				name: "Test3",
+				address: "2374 JKHjhs Rd",
+				lat: 52,
+				lng: 35,
+				type: "Accomodation",
+				rating: 4.5,
+        	},
+        ]);
 		
 
     });
 
-    // Get all TravelLocations
-    app.get('/api/travelLocation', function (req, res) {
-
-        getTravelLocations(res);
-
-    });
-
-    // Get specific TravelLocation
-    app.get('/api/travelLocation/:location_id', function (req, res) {
-
-        TravelLocation.find({
-
-            _id: req.params.location_id
-
-        }, function (err, locations) {
-            if (err) {
-                res.send(err);
-            }
-            res.json(locations);
-
-        });
-
-    });
-
-    // Create TravelLocation and send back all TravelLocations after creation
-    app.post('/api/travelLocation', function (req, res) {
-
-        TravelLocation.create({
-
-            text: req.body.text,
-            done: false
-
-        }, function (err, todo) {
-            if (err) {
-                res.send(err);
-            }
-            getTravelLocations(res);
-
-        });
-
-    });
-
-    // Delete a TravelLocation
-    app.delete('/api/travelLocation/:location_id', function (req, res) {
-        TravelLocation.remove({
-
-            _id: req.params.location_id
-
-        }, function (err, location) {
-            if (err) {
-                res.send(err);
-            }
-            getTravelLocations(res);
-
-        });
-    });
-
-    // Get all locationFeatures
-    app.get('/api/locationFeatures', function (req, res) {
-        LocationFeature.find(function (err, features) {
-            if (err) {
-                res.send(err);
-            }
-            res.json(features);
-
-        });
-    });
-
-    // Get all FeatureRatings
-    app.get('/api/featureRatings', function (req, res) {
-        LocationFeature.find(function (err, ratings) {
-            if (err) {
-                res.send(err);
-            }
-            res.json(ratings);
-
-        });
-    });
 
     app.get('/', function (req, res) {
         res.render('index.ejs');
@@ -180,8 +138,8 @@ module.exports = function (app, passport) {
 		res.sendFile(__dirname + '/views/travelLocations.html');
     });
     
-    app.get('/locationFeatures.html', function (req, res) {
-		res.sendFile(__dirname + '/public/html/locationFeatures.html');
+    app.get('/areaBrowser.html', function (req, res) {
+		res.sendFile(__dirname + '/public/html/areaBrowser.html');
     });
 
 };
