@@ -6,47 +6,147 @@
 		<title>Travel Locations</title>
 		<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css">
 		<link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css">
-		<link rel="stylesheet" href="../css/style.css">
-		<link rel="stylesheet" href="../css/travelLocations.css">
+		<link rel="stylesheet" href="css/style.css">
+		<link rel="stylesheet" href="css/travelLocations.css">
+		<script src='https://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js'></script>
+		<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDEGZ6aB8yHrRaRQfHFt8iZZP-9N_Kz3-g&extension=.js"></script>
+		<script>
+			var map;
+		    var geoCoder;
+		    
+		    google.maps.event.addDomListener(window, "load", init);
+			$(document).ready(function() {
+				$("#submit").click(function() {
+					
+					var locationName = ($("#locationName").val() == "") ? -1 : $("#locationName").val();
+					
+					var  accommodations = $($("#featureConstraints li input[type=checkbox]")[0]).prop("checked");
+					var  accommodationsNum = ( accommodations) ? $($("#featureConstraints li input[type=number]")[0]).val() : -1;
+					
+					var restaurants = $($("#featureConstraints li input[type=checkbox]")[1]).prop("checked");
+					var restaurantsNum = (restaurants) ? $($("#featureConstraints li input[type=number]")[1]).val() : -1;
+					
+					var attractions = $($("#featureConstraints li input[type=checkbox]")[2]).prop("checked");
+					var attractionsNum = (attractions) ? $($("#featureConstraints li input[type=number]")[2]).val() : -1;
+					
+					$.ajax({
+						dataType: "json",
+						url: "./api/LocationBrowser/"+locationName+"/"+ accommodationsNum+"/"+restaurantsNum+"/"+attractionsNum,
+						success: function(data) {
+							showResults(data);
+						}
+					});
+					
+				});
+				
+				$("#featureConstraints li input[type=checkbox]").click(function() {
+					$(this).parent().find("input[type=number]").prop("disabled", !$(this).prop("checked"));
+				});
+
+			});
+			function showResults(results) {
+					
+				$("#location_results").empty();	
+					
+				$.each(results, function(i, elem) {
+					var marker = new google.maps.Marker({
+						map: map,
+						position: new google.maps.LatLng(elem.lat, elem.lng),
+						title: elem.name
+					});
+					var $newLocation = $('<div class="location"><div class="title">'+elem.title+'</div><ul><li> accommodations: '+elem. accommodations.length+'</li><li>Restaurants: '+elem.restaurants.length+'</li><li>Attractions: '+elem.attractions.length+'</li></ul></div>');
+					$newLocation.click(function() {
+						map.setCenter(marker.getPosition());
+						map.setZoom(6);
+					});
+					$("#location_results").append($newLocation);
+				});
+				
+			}		    
+		    function init() {
+			    geoCoder = new google.maps.Geocoder();
+		        var mapOptions = {
+		            center: new google.maps.LatLng(34,-40),
+		            zoom: 2,
+		            zoomControl: true,
+		            disableDoubleClickZoom: true,
+		            mapTypeControl: false,
+		            scaleControl: true,
+		            scrollwheel: true,
+		            panControl: false,
+		            streetViewControl: false,
+		            draggable : true,
+		            overviewMapControl: false,
+		            overviewMapControlOptions: {
+		                opened: false,
+		            },
+		            mapTypeId: google.maps.MapTypeId.ROADMAP,
+					styles: [{"featureType": "administrative", "elementType": "geometry.fill", "stylers": [{ "visibility": "off" }]}, {"featureType": "landscape","stylers": [{"hue": "#FFBB00"},{"saturation": 43.400000000000006},{"lightness": 37.599999999999994},{"gamma": 1}]},{"featureType": "road.highway","stylers": [{"hue": "#FFC200"},{"saturation": -61.8},{"lightness": 45.599999999999994},{"gamma": 1}]},{"featureType": "road.arterial","stylers": [{"hue": "#FF0300"},{"saturation": -100},{"lightness": 51.19999999999999},{"gamma": 1}]},{"featureType": "road.local","stylers": [{"hue": "#FF0300"},{"saturation": -100},{"lightness": 52},{"gamma": 1}]},{"featureType": "water","stylers": [{"hue": "#0078FF"},{"saturation": -13.200000000000003},{"lightness": 2.4000000000000057},{"gamma": 1}]},{"featureType": "poi","stylers": [{"hue": "#00FF6A"},{"saturation": -1.0989010989011234},{"lightness": 11.200000000000017},{"gamma": 1}]}]
+		        }
+		        var mapElement = document.getElementById("map");
+		        map = new google.maps.Map(mapElement, mapOptions);
+			}	
+			
+		</script>
+		<!--
 		<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.16/angular.min.js"></script>
+		<script src="js/ng-map.js"></script>
 		
-		<script src="../js/controllers/TravelLocationController.js"></script>
-		<script src="../js/controllers/LocationFeatureController.js"></script>
-		<script src="../js/controllers/FeatureRatingController.js"></script>
+		<script src="js/controllers/TravelLocationController.js"></script>
+		<script src="js/controllers/LocationFeatureController.js"></script>
+		<script src="js/controllers/FeatureRatingController.js"></script>
 		
-		<script src="../js/services/TravelLocationService.js"></script>
-		<script src="../js/services/LocationFeatureService.js"></script>
-		<script src="../js/services/FeatureRatingService.js"></script>
+		<script src="js/services/TravelLocationService.js"></script>
+		<script src="js/services/LocationFeatureService.js"></script>
+		<script src="js/services/FeatureRatingService.js"></script>
 		
-		<script src="../js/core.js"></script>
-	
+		<script src="js/core.js"></script>
+		-->
+		
 	</head>
 	<body ng-controller="mainController">
 		<div class="container">
 	
-			<div id="location-list" class="row">
-				<div class="col-sm-4 col-sm-offset-4">
-	
+			<div id="upper_map">
+				<div id="map"></div>
+			<div id="controls">
+				
+				<div id="controls_title">
+					Where would you like to travel?
+				</div>
+				
+				<div id="query_controls">
+					<label>Search by location name</label>
+					<input type="text" class="form-control" id="locationName" />
 					
-					<div ng-repeat="location in locations">
-						<label>
-							<input type="checkbox" ng-click="highlightLocation(location._id)"> {{ location.name }}
-						</label>
+					<label>Search by feature constraints</label>
+					<ul id="featureConstraints">
+						<li><input type="checkbox" /> Accommodations <input type="number" value=0 disabled /></li>
+						<li><input type="checkbox" /> Restaurants <input type="number" value=0 disabled /></li>
+						<li><input type="checkbox" /> Attractions <input type="number" value=0 disabled /></li>
+					</ul>
+					
+					
+					<button id="submit" class="btn" ng-click="search()">
+						Submit
+					</button>
+				</div>
+				
+				<div id="location-list">
+					<label>
+						Results
+					</label>
+					<div id="location_results">
+		
+						
+								
 					</div>
-	
-					<p class="text-center" ng-show="loading">
-						<span class="fa fa-spinner fa-spin fa-3x"></span>
-					</p>
-	
 				</div>
+				
+				
+
+
 			</div>
-	
-			<div id="process-data" class="row">
-				<div class="col-sm-8 col-sm-offset-2 text-center">
-					<button type="submit" class="btn btn-primary btn-lg" ng-click="processData()">Process Data</button>
-				</div>
-			</div>
-	
 	
 		</div>
 	

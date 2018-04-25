@@ -14,6 +14,50 @@ function getTravelLocations(res) {
 
 module.exports = function (app, passport) {
 
+	// API call for Location Browser
+    app.get('/api/LocationBrowser/:name/:accommodations/:restaurants/:attractions', function (req, res) {
+
+        console.log(req.params);
+        var name = req.params.name;
+        var accommodations = req.params.accommodations;
+        var restaurants = req.params.restaurants;
+        var attractions = req.params.attractions;
+        res.json([
+        	{
+				title: "Test1",
+				lat: 50,
+				lng: 30,
+				accommodations: [],
+				restaurants: [],
+				attractions: [],
+        	},
+        	{
+				title: "Test2",
+				lat: 55,
+				lng: 31,
+				accommodations: [],
+				restaurants: [],
+				attractions: [],
+        	},
+        	{
+				title: "Test3",
+				lat: 52,
+				lng: 35,
+				accommodations: [],
+				restaurants: [],
+				attractions: [],
+        	},
+        ]);
+
+    });
+    
+    // API call for Area Browser
+    app.get('/api/AreaBrowser', function (req, res) {
+
+		
+
+    });
+
     // Get all TravelLocations
     app.get('/api/travelLocation', function (req, res) {
 
@@ -132,13 +176,13 @@ module.exports = function (app, passport) {
         res.sendFile(__dirname + '/public/html/map.html');
     });
 
-    // app.get('/travelLocations', function (req, res) {
-    //     res.sendFile(__dirname + '/public/travelLocations.html');
-    // });
-    //
-    // app.get('/locationFeatures', function (req, res) {
-    //     res.sendFile(__dirname + '/public/locationFeatures.html');
-    // });
+    app.get('/travelLocations.html', function (req, res) {
+		res.sendFile(__dirname + '/public/html/travelLocations.html');
+    });
+    
+    app.get('/locationFeatures.html', function (req, res) {
+		res.sendFile(__dirname + '/public/html/locationFeatures.html');
+    });
 
 };
 
