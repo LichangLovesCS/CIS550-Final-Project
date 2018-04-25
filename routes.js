@@ -1,6 +1,8 @@
 const TravelLocation = require('./app/models/TravelLocation');
 const LocationFeature = require('./app/models/LocationFeature');
 const FeatureRating = require('./app/models/FeatureRating');
+const searchModels = require('./app/models/search');
+const mongoose = require('mongoose');
 
 function getTravelLocations(res) {
     TravelLocation.find(function (err, locations) {
