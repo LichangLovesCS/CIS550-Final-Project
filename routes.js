@@ -2,7 +2,7 @@ const TravelLocation = require('./app/models/TravelLocation');
 const LocationFeature = require('./app/models/LocationFeature');
 const FeatureRating = require('./app/models/FeatureRating');
 const searchModels = require('./app/models/search');
-const mongoose = require('mongoose');
+
 
 function getTravelLocations(res) {
     TravelLocation.find(function (err, locations) {
@@ -144,51 +144,63 @@ module.exports = function (app, passport) {
         res.sendFile(__dirname + '/views/areaBrowser.html');
     });
 
-    app.get('/search-question', async function (req, res) {
-        const id = parseInt(req.query.id)
+    app.get('/api/SearchQuestion/:id', function (req, res) {
+        var id = req.params.id;
+
 
         switch (id) {
             // The most popular Hotel for foreigners
-            case 1:
-                var docs = await searchModels.londonReviewsCombine.find({classify: 'accommodation'}).sort({language_kind: -1}).limit(10)
-                var details = await searchModels.fetchDetailList(docs)
+            case "1":
+                var docs = searchModels.londonReviewsCombine.find({classify: 'accommodation'}).sort({language_kind: -1}).limit(10)
+                var details = searchModels.fetchDetailList(docs)
                 res.json(details)
                 break;
             // The best restaurants in London
-            case 2:
-                var docs = await searchModels.londonReviewsCombine.find({classify: 'restaurant'}).sort({average_rate: -1}).limit(10)
-                var details = await searchModels.fetchDetailList(docs)
+            case "2":
+                var docs = searchModels.londonReviewsCombine.find({classify: 'restaurant'}).sort({average_rate: -1}).limit(10)
+                var details = searchModels.fetchDetailList(docs)
                 res.json(details)
                 break;
             // The Top Rated Attractions in London
-            case 3:
-                var docs = await searchModels.londonReviewsCombine.find({classify: 'attraction'}).sort({reviews_count: -1}).limit(10)
-                var details = await searchModels.fetchDetailList(docs)
+            case "3":
+                var docs = searchModels.londonReviewsCombine.find({classify: 'attraction'}).sort({reviews_count: -1}).limit(10)
+                var details = searchModels.fetchDetailList(docs)
                 res.json(details)
                 break;
             // The closest attractions to Big Ben
-            case 4:
-                var docs = await searchModels.attractionsDetails.find().sort({ben_lat_dis: -1}).limit(10)
-                var details = await searchModels.fetchDetailList(docs, 'id')
+            case "4":
+                var docs = searchModels.attractionsDetails.find().sort({ben_lat_dis: -1}).limit(10)
+                var details = searchModels.fetchDetailList(docs, 'id')
                 res.json(details)
                 break;
             // The most reviewed hotels
-            case 5:
-                var docs = await searchModels.londonReviewsCombine.find({classify: 'accommodation'}).sort({reviews_count: -1}).limit(10)
-                var details = await searchModels.fetchDetailList(docs)
+            case "5":
+                var docs = searchModels.londonReviewsCombine.find({classify: 'accommodation'}).sort({reviews_count: -1}).limit(10)
+                var details = searchModels.fetchDetailList(docs)
                 res.json(details)
                 break;
             // The popular venue?
-            case 6:
-                var docs = await searchModels.londonReviewsCombine.find({classify: 'attraction'}).sort({averate_polarity: -1}).limit(10)
-                var details = await searchModels.fetchDetailList(docs)
+            case "6":
+                var docs = searchModels.londonReviewsCombine.find({classify: 'attraction'}).sort({averate_polarity: -1}).limit(10)
+                var details = searchModels.fetchDetailList(docs)
                 res.json(details)
                 break;
             default:
-                res.redirect('/search')
+                res.redirect('/travelLocations.html')
                 break;
         }
 
     });
 
 };
+
+function isLoggedIn(req, res, next) {
+
+    // if user is authenticated in the session, carry on
+    if (req.isAuthenticated())
+        return next();
+
+    // if they aren't redirect them to the home page
+    res.redirect('/');
+}
+

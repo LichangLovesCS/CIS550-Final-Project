@@ -38,6 +38,18 @@
                 });
 
             });
+            
+            $("#buttons button").click(function() {
+            	$.ajax({
+                    dataType: "json",
+                    url: "./api/SearchQuestion/"+$(this).prop("id"),
+                    success: function (data) {
+                        showResults(data);
+                    }
+                });
+            });
+
+			
 
             $("#featureConstraints li input[type=checkbox]").click(function () {
                 $(this).parent().find("input[type=number]").prop("disabled", !$(this).prop("checked"));
@@ -188,6 +200,7 @@
 
 
         <div id="query_controls">
+        	<div id="buttons">
             <button id="1" class="btn">Show me the best place.</button>
             <button id=“2” class="btn">Show me the most reviewed restaurants in London.</button>
             <button id=“3” class="btn">Show me the best restaurants in London.</button>
@@ -195,6 +208,7 @@
             <button id=“5” class="btn">Show me the closest attractions to Big Ben.</button>
             <button id=“6” class="btn">Show me the best hostel in London.</button>
             <button id=“7” class="btn">Show me the most loved place in London.</button>
+            </div>
 
 
             <label>Filter by text</label>
