@@ -58,7 +58,7 @@ label:not(:first-child) {
 #query_controls input[type="number"] {
 	width: 50px;
 	position: absolute;
-	right: 50%;
+	right: 40%;
 	top: 0px;
 }
 #query_controls ul {
@@ -73,4 +73,14 @@ label:not(:first-child) {
 	width: 90%;
 	margin: 0px auto;
 	display: block;
+}
+.location {
+	padding: 5px;
+}
+.location .title {
+	margin-left: 10px;
+	font-weight: 600;
+}
+.location:hover {
+	cursor: pointer;
 }
