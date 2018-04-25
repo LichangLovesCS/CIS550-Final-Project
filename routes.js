@@ -139,7 +139,7 @@ module.exports = function (app, passport) {
     });
     
     app.get('/areaBrowser.html', function (req, res) {
-		res.sendFile(__dirname + '/public/html/areaBrowser.html');
+		res.sendFile(__dirname + '/views/areaBrowser.html');
     });
 
 };
