@@ -1,213 +1,288 @@
 <!doctype html>
 <html ng-app="app">
-	<head>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<title>Browse by Locations</title>
-		<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css">
-		<link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css">
-		<link rel="stylesheet" href="css/style.css">
-		<link rel="stylesheet" href="css/travelLocations.css">
-		<script src='https://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js'></script>
-		<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDEGZ6aB8yHrRaRQfHFt8iZZP-9N_Kz3-g&extension=.js"></script>
-		<script>
-			var map;
-			var markers = {};
-			var bounds = null;
-		    var geoCoder;
-		    var top, left, bottom, right;
-		    
-		    google.maps.event.addDomListener(window, "load", init);
-			$(document).ready(function() {
-				$('input[name=sort]').change(function() {
-					var sort = $('input[name=sort]:checked').val();
-					$.ajax({
-						dataType: "json",
-						url: "./api/AreaBrowser/"+left+"/"+ bottom+"/"+top+"/"+right+"/"+sort,
-						success: function(data) {
-							showResults(data);
-						}
-					});
-				});
-				
-			});
-			function showResults(results) {
-					
-				$("#location_results").empty();	
-					
-				$.each(results, function(i, elem) {
-					var marker = new google.maps.Marker({
-						map: map,
-						position: new google.maps.LatLng(elem.lat, elem.lng),
-						title: elem.name
-					});
-					var $newLocation = $('<div class="location"><div class="title">'+(i+1)+". "+elem.name+'</div><ul><li> Address: '+elem.address+'</li><li> Type: '+elem.type+'</li><li>Rating: '+elem.rating+'</li></ul><button class="btn">Search on Google</button></div>');
-					$newLocation.find("button").click(function() {
-						window.open('https://www.google.com/search?q=' + elem.name + " " + elem.address);
-					});
-					$newLocation.click(function() {
-						map.setCenter(marker.getPosition());
-						map.setZoom(15);
-					});
-					$("#location_results").append($newLocation);
-				});
-				
-			}		    
-		    function init() {
-			    geoCoder = new google.maps.Geocoder();
-		        var mapOptions = {
-		            center: new google.maps.LatLng(51.5074,0.1278),
-		            zoom: 7,
-		            zoomControl: true,
-		            disableDoubleClickZoom: true,
-		            mapTypeControl: false,
-		            scaleControl: true,
-		            scrollwheel: true,
-		            panControl: false,
-		            streetViewControl: false,
-		            draggable : true,
-		            overviewMapControl: false,
-		            overviewMapControlOptions: {
-		                opened: false,
-		            },
-		            mapTypeId: google.maps.MapTypeId.ROADMAP,
-					styles: [{"featureType": "administrative", "elementType": "geometry.fill", "stylers": [{ "visibility": "off" }]}, {"featureType": "landscape","stylers": [{"hue": "#FFBB00"},{"saturation": 43.400000000000006},{"lightness": 37.599999999999994},{"gamma": 1}]},{"featureType": "road.highway","stylers": [{"hue": "#FFC200"},{"saturation": -61.8},{"lightness": 45.599999999999994},{"gamma": 1}]},{"featureType": "road.arterial","stylers": [{"hue": "#FF0300"},{"saturation": -100},{"lightness": 51.19999999999999},{"gamma": 1}]},{"featureType": "road.local","stylers": [{"hue": "#FF0300"},{"saturation": -100},{"lightness": 52},{"gamma": 1}]},{"featureType": "water","stylers": [{"hue": "#0078FF"},{"saturation": -13.200000000000003},{"lightness": 2.4000000000000057},{"gamma": 1}]},{"featureType": "poi","stylers": [{"hue": "#00FF6A"},{"saturation": -1.0989010989011234},{"lightness": 11.200000000000017},{"gamma": 1}]}]
-		        }
-		        var mapElement = document.getElementById("map");
-		        map = new google.maps.Map(mapElement, mapOptions);
-		        
-		        
-		        
-		        
-		        // DRAGGABLE MAP
-				var shiftPressed = false;
-				
-				$(window).keydown(function(evt) {
-					if (evt.which === 16) { // shift
-						shiftPressed = true;
-					}
-				}).keyup(function(evt) {
-					if (evt.which === 16) { // shift
-						shiftPressed = false;
-					}
-				});
-				
-				var mouseDownPos, gribBoundingBox = null, mouseIsDown = 0;
-				var themap = map;
-				
-				google.maps.event.addListener(themap, 'mousemove', function(e) {
-					if (mouseIsDown && shiftPressed) {
-						if (gribBoundingBox !== null) {
-							bounds.extend(e.latLng);
-							gribBoundingBox.setBounds(bounds); // If this statement is enabled, I lose mouseUp events
-						} else {
-							bounds = new google.maps.LatLngBounds();
-							bounds.extend(e.latLng);
-							gribBoundingBox = new google.maps.Rectangle({
-								map: themap,
-								bounds: bounds,
-								fillOpacity: 0.15,
-								strokeWeight: 0.9,
-								clickable: false
-							});
-						}
-					}
-				});
-				
-				google.maps.event.addListener(themap, 'mousedown', function(e) {
-					if (shiftPressed) {
-						mouseIsDown = 1;
-						mouseDownPos = e.latLng;
-						themap.setOptions({
-							draggable: false
-						});
-					}
-				});
-				
-				google.maps.event.addListener(themap, 'mouseup', function(e) {
-					if (mouseIsDown && shiftPressed) {
-						mouseIsDown = 0;
-						if (gribBoundingBox !== null) {
-							var boundsSelectionArea = new google.maps.LatLngBounds(gribBoundingBox.getBounds().getSouthWest(), gribBoundingBox.getBounds().getNorthEast());
-					
-							left = gribBoundingBox.getBounds().getSouthWest().lng();
-							bottom = gribBoundingBox.getBounds().getSouthWest().lat();
-							top = gribBoundingBox.getBounds().getNorthEast().lat();
-							right = gribBoundingBox.getBounds().getNorthEast().lng();
-							
-							var sort = $('input[name=sort]:checked').val();
-					
-							$.ajax({
-								dataType: "json",
-								url: "./api/AreaBrowser/"+left+"/"+ bottom+"/"+top+"/"+right+"/"+sort,
-								success: function(data) {
-									showResults(data);
-								}
-							});
-					
-							gribBoundingBox.setMap(null); // remove the rectangle
-						}
-						gribBoundingBox = null;
-					
-					}
-					
-					themap.setOptions({
-						draggable: true
-					});
-				});
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Browse by Locations</title>
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/travelLocations.css">
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js'></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDEGZ6aB8yHrRaRQfHFt8iZZP-9N_Kz3-g&extension=.js"></script>
+    <script>
+        var map;
+        var markers = {};
+        var bounds = null;
+        var geoCoder;
+        var top, left, bottom, right;
 
-			}	
-			
-		</script>
-	</head>
-	<body>
-		<div class="container">
-			
-			<div id="navigation">
-				<a href="./travelLocations.html">Browse by Locations</a><a href="./areaBrowser.html" class="disabled">Browse by Area</a>
-			</div>
-			
-			<div id="upper_map">
-				<div id="map"></div>
-			</div>
-			<div id="controls">
-				
-				<div id="controls_title">
-					Draw a rectangle around your search area.
-				</div>
-				<div id="controls_subtitle">
-					Click and drag using SHIFT a rectangle on the above map.
-				</div>
-				
-				<div id="query_controls">
-					<label>
-						Choose a sorting method
-					</label>
-					
-					<div id="sorts">
-						<label><input type="radio" name="sort" value="rating DESC" checked="checked">Sort by Rating (High -> Low)</label>
-						<label><input type="radio" name="sort" value="rating">Sort by Rating (Low -> High)</label>
-						<label><input type="radio" name="sort" value="name">Sort Alphabetically</label>
-					</div>
-				</div>
-				
-				<div id="location-list">
-					<label>
-						Results
-					</label>
-					<div id="location_results">
-		
-						
-								
-					</div>
-				</div>
-				
-				
+        google.maps.event.addDomListener(window, "load", init);
+        $(document).ready(function () {
+            $('input[name=sort]').change(function () {
+                var sort = $('input[name=sort]:checked').val();
+                $.ajax({
+                    dataType: "json",
+                    url: "./api/AreaBrowser/" + left + "/" + bottom + "/" + top + "/" + right + "/" + sort,
+                    success: function (data) {
+                        showResults(data);
+                    }
+                });
+            });
+
+        });
+
+        function showResults(results) {
+
+            $("#location_results").empty();
+
+            $.each(results, function (i, elem) {
+                var marker = new google.maps.Marker({
+                    map: map,
+                    position: new google.maps.LatLng(elem.lat, elem.lng),
+                    title: elem.name
+                });
+                var $newLocation = $('<div class="location"><div class="title">' + (i + 1) + ". " + elem.name + '</div><ul><li> Address: ' + elem.address + '</li><li> Type: ' + elem.type + '</li><li>Rating: ' + elem.rating + '</li></ul><button class="btn">Search on Google</button></div>');
+                $newLocation.find("button").click(function () {
+                    window.open('https://www.google.com/search?q=' + elem.name + " " + elem.address);
+                });
+                $newLocation.click(function () {
+                    map.setCenter(marker.getPosition());
+                    map.setZoom(15);
+                });
+                $("#location_results").append($newLocation);
+            });
+
+        }
+
+        function init() {
+            geoCoder = new google.maps.Geocoder();
+            var mapOptions = {
+                center: new google.maps.LatLng(51.5074, 0.1278),
+                zoom: 7,
+                zoomControl: true,
+                disableDoubleClickZoom: true,
+                mapTypeControl: false,
+                scaleControl: true,
+                scrollwheel: true,
+                panControl: false,
+                streetViewControl: false,
+                draggable: true,
+                overviewMapControl: false,
+                overviewMapControlOptions: {
+                    opened: false,
+                },
+                mapTypeId: google.maps.MapTypeId.ROADMAP,
+                styles: [{
+                    "featureType": "administrative",
+                    "elementType": "geometry.fill",
+                    "stylers": [{"visibility": "off"}]
+                }, {
+                    "featureType": "landscape",
+                    "stylers": [{"hue": "#FFBB00"}, {"saturation": 43.400000000000006}, {"lightness": 37.599999999999994}, {"gamma": 1}]
+                }, {
+                    "featureType": "road.highway",
+                    "stylers": [{"hue": "#FFC200"}, {"saturation": -61.8}, {"lightness": 45.599999999999994}, {"gamma": 1}]
+                }, {
+                    "featureType": "road.arterial",
+                    "stylers": [{"hue": "#FF0300"}, {"saturation": -100}, {"lightness": 51.19999999999999}, {"gamma": 1}]
+                }, {
+                    "featureType": "road.local",
+                    "stylers": [{"hue": "#FF0300"}, {"saturation": -100}, {"lightness": 52}, {"gamma": 1}]
+                }, {
+                    "featureType": "water",
+                    "stylers": [{"hue": "#0078FF"}, {"saturation": -13.200000000000003}, {"lightness": 2.4000000000000057}, {"gamma": 1}]
+                }, {
+                    "featureType": "poi",
+                    "stylers": [{"hue": "#00FF6A"}, {"saturation": -1.0989010989011234}, {"lightness": 11.200000000000017}, {"gamma": 1}]
+                }]
+            }
+            var mapElement = document.getElementById("map");
+            map = new google.maps.Map(mapElement, mapOptions);
 
 
-			</div>
-	
-		</div>
-	
-	</body>
+            // DRAGGABLE MAP
+            var shiftPressed = false;
+
+            $(window).keydown(function (evt) {
+                if (evt.which === 16) { // shift
+                    shiftPressed = true;
+                }
+            }).keyup(function (evt) {
+                if (evt.which === 16) { // shift
+                    shiftPressed = false;
+                }
+            });
+
+            var mouseDownPos, gribBoundingBox = null, mouseIsDown = 0;
+            var themap = map;
+
+            google.maps.event.addListener(themap, 'mousemove', function (e) {
+                if (mouseIsDown && shiftPressed) {
+                    if (gribBoundingBox !== null) {
+                        bounds.extend(e.latLng);
+                        gribBoundingBox.setBounds(bounds); // If this statement is enabled, I lose mouseUp events
+                    } else {
+                        bounds = new google.maps.LatLngBounds();
+                        bounds.extend(e.latLng);
+                        gribBoundingBox = new google.maps.Rectangle({
+                            map: themap,
+                            bounds: bounds,
+                            fillOpacity: 0.15,
+                            strokeWeight: 0.9,
+                            clickable: false
+                        });
+                    }
+                }
+            });
+
+            google.maps.event.addListener(themap, 'mousedown', function (e) {
+                if (shiftPressed) {
+                    mouseIsDown = 1;
+                    mouseDownPos = e.latLng;
+                    themap.setOptions({
+                        draggable: false
+                    });
+                }
+            });
+
+            google.maps.event.addListener(themap, 'mouseup', function (e) {
+                if (mouseIsDown && shiftPressed) {
+                    mouseIsDown = 0;
+                    if (gribBoundingBox !== null) {
+                        var boundsSelectionArea = new google.maps.LatLngBounds(gribBoundingBox.getBounds().getSouthWest(), gribBoundingBox.getBounds().getNorthEast());
+
+                        left = gribBoundingBox.getBounds().getSouthWest().lng();
+                        bottom = gribBoundingBox.getBounds().getSouthWest().lat();
+                        top = gribBoundingBox.getBounds().getNorthEast().lat();
+                        right = gribBoundingBox.getBounds().getNorthEast().lng();
+
+                        var sort = $('input[name=sort]:checked').val();
+
+                        $.ajax({
+                            dataType: "json",
+                            url: "./api/AreaBrowser/" + left + "/" + bottom + "/" + top + "/" + right + "/" + sort,
+                            success: function (data) {
+                                showResults(data);
+                            }
+                        });
+
+                        gribBoundingBox.setMap(null); // remove the rectangle
+                    }
+                    gribBoundingBox = null;
+
+                }
+
+                themap.setOptions({
+                    draggable: true
+                });
+            });
+
+        }
+
+    </script>
+</head>
+<body>
+
+<div id="fb-root"></div>
+<script>
+    window.fbAsyncInit = function () {
+        FB.init({
+            appId: '1984894625096320',
+            xfbml: true,
+            version: 'v2.12'
+        });
+        FB.Event.subscribe('auth.login', function () {
+            window.location.href = "travelLocations.html";
+        });
+        FB.Event.subscribe('auth.logout', function () {
+            window.location.href = "/";
+        });
+
+        FB.getLoginStatus(function (response) {
+            if (response.status === 'connected') {
+                // the user is logged in and has authenticated your
+                // app, and response.authResponse supplies
+                // the user's ID, a valid access token, a signed
+                // request, and the time the access token
+                // and signed request each expire
+                var uid = response.authResponse.userID;
+                var accessToken = response.authResponse.accessToken;
+
+                FB.api('/me', function (response) {
+                    console.log("hello i am browsing and authenticated " + response.name);
+                    document.getElementById('status').innerHTML =
+                        'Welcome to our finder app, ' + response.name + '!';
+                });
+            }
+        });
+    };
+
+    (function (d, s, id) {
+        var js, fjs = d.getElementsByTagName(s)[0];
+        if (d.getElementById(id)) {
+            return;
+        }
+        js = d.createElement(s);
+        js.id = id;
+        js.src = "https://connect.facebook.net/en_US/sdk.js";
+        fjs.parentNode.insertBefore(js, fjs);
+    }(document, 'script', 'facebook-jssdk'));
+</script>
+<div id="header">
+    <h3 id="status">Welcome to our finder app!</h3>
+    <fb:login-button class="fb-login-button" data-width="50" data-max-rows="1" data-size="small"
+                     data-button-type="login_with" data-show-faces="false"
+                     data-use-continue-as="false" autologoutlink="true"></fb:login-button>
+</div>
+
+
+<div class="container">
+
+    <div id="navigation">
+        <a href="./travelLocations.html">Browse by Locations</a><a href="./areaBrowser.html" class="disabled">Browse by
+        Area</a>
+    </div>
+
+    <div id="upper_map">
+        <div id="map"></div>
+    </div>
+    <div id="controls">
+
+        <div id="controls_title">
+            Draw a rectangle around your search area.
+        </div>
+        <div id="controls_subtitle">
+            Click and drag using SHIFT a rectangle on the above map.
+        </div>
+
+        <div id="query_controls">
+            <label>
+                Choose a sorting method
+            </label>
+
+            <div id="sorts">
+                <label><input type="radio" name="sort" value="rating DESC" checked="checked">Sort by Rating (High ->
+                    Low)</label>
+                <label><input type="radio" name="sort" value="rating">Sort by Rating (Low -> High)</label>
+                <label><input type="radio" name="sort" value="name">Sort Alphabetically</label>
+            </div>
+        </div>
+
+        <div id="location-list">
+            <label>
+                Results
+            </label>
+            <div id="location_results">
+
+
+            </div>
+        </div>
+
+
+    </div>
+
+</div>
+
+</body>
 </html>

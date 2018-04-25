@@ -1,159 +1,232 @@
 <!doctype html>
 <html ng-app="app">
-	<head>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<title>Browse by Locations</title>
-		<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css">
-		<link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css">
-		<link rel="stylesheet" href="css/style.css">
-		<link rel="stylesheet" href="css/travelLocations.css">
-		<script src='https://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js'></script>
-		<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDEGZ6aB8yHrRaRQfHFt8iZZP-9N_Kz3-g&extension=.js"></script>
-		<script>
-			var map;
-		    var geoCoder;
-		    
-		    google.maps.event.addDomListener(window, "load", init);
-			$(document).ready(function() {
-				$("#submit").click(function() {
-					
-					var locationName = ($("#locationName").val() == "") ? -1 : $("#locationName").val();
-					
-					var  accommodations = $($("#featureConstraints li input[type=checkbox]")[0]).prop("checked");
-					var  accommodationsNum = ( accommodations) ? $($("#featureConstraints li input[type=number]")[0]).val() : -1;
-					
-					var restaurants = $($("#featureConstraints li input[type=checkbox]")[1]).prop("checked");
-					var restaurantsNum = (restaurants) ? $($("#featureConstraints li input[type=number]")[1]).val() : -1;
-					
-					var attractions = $($("#featureConstraints li input[type=checkbox]")[2]).prop("checked");
-					var attractionsNum = (attractions) ? $($("#featureConstraints li input[type=number]")[2]).val() : -1;
-					
-					$.ajax({
-						dataType: "json",
-						url: "./api/LocationBrowser/"+locationName+"/"+ accommodationsNum+"/"+restaurantsNum+"/"+attractionsNum,
-						success: function(data) {
-							showResults(data);
-						}
-					});
-					
-				});
-				
-				$("#featureConstraints li input[type=checkbox]").click(function() {
-					$(this).parent().find("input[type=number]").prop("disabled", !$(this).prop("checked"));
-				});
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Browse by Locations</title>
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/travelLocations.css">
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js'></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDEGZ6aB8yHrRaRQfHFt8iZZP-9N_Kz3-g&extension=.js"></script>
+    <script>
+        var map;
+        var geoCoder;
 
-			});
-			function showResults(results) {
-					
-				$("#location_results").empty();	
-					
-				$.each(results, function(i, elem) {
-					var marker = new google.maps.Marker({
-						map: map,
-						position: new google.maps.LatLng(elem.lat, elem.lng),
-						title: elem.name
-					});
-					var $newLocation = $('<div class="location"><div class="title">'+(i+1)+". "+elem.name+'</div><ul><li> Address: '+elem.address+'</li><li> Type: '+elem.type+'</li><li>Rating: '+elem.rating+'</li></ul><button class="btn">Search on Google</button></div>');
-					$newLocation.find("button").click(function() {
-						window.open('https://www.google.com/search?q=' + elem.name + " " + elem.address);
-					});
-					$newLocation.click(function() {
-						map.setCenter(marker.getPosition());
-						map.setZoom(15);
-					});
-					$("#location_results").append($newLocation);
-				});
-				
-			}		    
-		    function init() {
-			    geoCoder = new google.maps.Geocoder();
-		        var mapOptions = {
-		            center: new google.maps.LatLng(51.5074,0.1278),
-		            zoom: 7,
-		            zoomControl: true,
-		            disableDoubleClickZoom: true,
-		            mapTypeControl: false,
-		            scaleControl: true,
-		            scrollwheel: true,
-		            panControl: false,
-		            streetViewControl: false,
-		            draggable : true,
-		            overviewMapControl: false,
-		            overviewMapControlOptions: {
-		                opened: false,
-		            },
-		            mapTypeId: google.maps.MapTypeId.ROADMAP,
-					styles: [{"featureType": "administrative", "elementType": "geometry.fill", "stylers": [{ "visibility": "off" }]}, {"featureType": "landscape","stylers": [{"hue": "#FFBB00"},{"saturation": 43.400000000000006},{"lightness": 37.599999999999994},{"gamma": 1}]},{"featureType": "road.highway","stylers": [{"hue": "#FFC200"},{"saturation": -61.8},{"lightness": 45.599999999999994},{"gamma": 1}]},{"featureType": "road.arterial","stylers": [{"hue": "#FF0300"},{"saturation": -100},{"lightness": 51.19999999999999},{"gamma": 1}]},{"featureType": "road.local","stylers": [{"hue": "#FF0300"},{"saturation": -100},{"lightness": 52},{"gamma": 1}]},{"featureType": "water","stylers": [{"hue": "#0078FF"},{"saturation": -13.200000000000003},{"lightness": 2.4000000000000057},{"gamma": 1}]},{"featureType": "poi","stylers": [{"hue": "#00FF6A"},{"saturation": -1.0989010989011234},{"lightness": 11.200000000000017},{"gamma": 1}]}]
-		        }
-		        var mapElement = document.getElementById("map");
-		        map = new google.maps.Map(mapElement, mapOptions);
-			}	
-			
-		</script>
-	</head>
-	<body>
-		<div class="container">
-			
-			<div id="navigation">
-				<a href="./travelLocations.html" class="disabled">Browse by Locations</a><a href="./areaBrowser.html">Browse by Area</a>
-			</div>
-			
-			<div id="upper_map">
-				<div id="map"></div>
-			</div>
-			<div id="controls">
-				
-				<div id="controls_title">
-					Where would you like to go?
-				</div>
-				
-				
-				<div id="query_controls">
-					<button id="1" class="btn">Show me the best place.</button>
-					<button id=“2” class="btn">Show me the most reviewed restaurants in London.</button>
-					<button id=“3” class="btn">Show me the best restaurants in London.</button>
-					<button id=“4” class="btn">Show me the Top Rated Attractions in London.</button>
-					<button id=“5” class="btn">Show me the closest attractions to Big Ben.</button>
-					<button id=“6” class="btn">Show me the best hostel in London.</button>
-					<button id=“7” class="btn">Show me the most loved place in London.</button>
+        google.maps.event.addDomListener(window, "load", init);
+        $(document).ready(function () {
+            $("#submit").click(function () {
 
-					
-					
-					
-					<label>Filter by text</label>
-					<input type="text" class="form-control" id="locationName" />
-					
-					<label>Filter by Category and Average Rating</label>
-					<ul id="featureConstraints">
-						<li><input type="checkbox" /> Accommodations <input type="number" value=0 disabled /></li>
-						<li><input type="checkbox" /> Restaurants <input type="number" value=0 disabled /></li>
-						<li><input type="checkbox" /> Attractions <input type="number" value=0 disabled /></li>
-					</ul>
-					
-					
-					<button id="submit" class="btn">
-						Submit
-					</button>
-				</div>
-				
-				<div id="location-list">
-					<label>
-						Results
-					</label>
-					<div id="location_results">
-		
-						
-								
-					</div>
-				</div>
-				
-				
+                var locationName = ($("#locationName").val() == "") ? -1 : $("#locationName").val();
+
+                var accommodations = $($("#featureConstraints li input[type=checkbox]")[0]).prop("checked");
+                var accommodationsNum = (accommodations) ? $($("#featureConstraints li input[type=number]")[0]).val() : -1;
+
+                var restaurants = $($("#featureConstraints li input[type=checkbox]")[1]).prop("checked");
+                var restaurantsNum = (restaurants) ? $($("#featureConstraints li input[type=number]")[1]).val() : -1;
+
+                var attractions = $($("#featureConstraints li input[type=checkbox]")[2]).prop("checked");
+                var attractionsNum = (attractions) ? $($("#featureConstraints li input[type=number]")[2]).val() : -1;
+
+                $.ajax({
+                    dataType: "json",
+                    url: "./api/LocationBrowser/" + locationName + "/" + accommodationsNum + "/" + restaurantsNum + "/" + attractionsNum,
+                    success: function (data) {
+                        showResults(data);
+                    }
+                });
+
+            });
+
+            $("#featureConstraints li input[type=checkbox]").click(function () {
+                $(this).parent().find("input[type=number]").prop("disabled", !$(this).prop("checked"));
+            });
+
+        });
+
+        function showResults(results) {
+
+            $("#location_results").empty();
+
+            $.each(results, function (i, elem) {
+                var marker = new google.maps.Marker({
+                    map: map,
+                    position: new google.maps.LatLng(elem.lat, elem.lng),
+                    title: elem.name
+                });
+                var $newLocation = $('<div class="location"><div class="title">' + (i + 1) + ". " + elem.name + '</div><ul><li> Address: ' + elem.address + '</li><li> Type: ' + elem.type + '</li><li>Rating: ' + elem.rating + '</li></ul><button class="btn">Search on Google</button></div>');
+                $newLocation.find("button").click(function () {
+                    window.open('https://www.google.com/search?q=' + elem.name + " " + elem.address);
+                });
+                $newLocation.click(function () {
+                    map.setCenter(marker.getPosition());
+                    map.setZoom(15);
+                });
+                $("#location_results").append($newLocation);
+            });
+
+        }
+
+        function init() {
+            geoCoder = new google.maps.Geocoder();
+            var mapOptions = {
+                center: new google.maps.LatLng(51.5074, 0.1278),
+                zoom: 7,
+                zoomControl: true,
+                disableDoubleClickZoom: true,
+                mapTypeControl: false,
+                scaleControl: true,
+                scrollwheel: true,
+                panControl: false,
+                streetViewControl: false,
+                draggable: true,
+                overviewMapControl: false,
+                overviewMapControlOptions: {
+                    opened: false,
+                },
+                mapTypeId: google.maps.MapTypeId.ROADMAP,
+                styles: [{
+                    "featureType": "administrative",
+                    "elementType": "geometry.fill",
+                    "stylers": [{"visibility": "off"}]
+                }, {
+                    "featureType": "landscape",
+                    "stylers": [{"hue": "#FFBB00"}, {"saturation": 43.400000000000006}, {"lightness": 37.599999999999994}, {"gamma": 1}]
+                }, {
+                    "featureType": "road.highway",
+                    "stylers": [{"hue": "#FFC200"}, {"saturation": -61.8}, {"lightness": 45.599999999999994}, {"gamma": 1}]
+                }, {
+                    "featureType": "road.arterial",
+                    "stylers": [{"hue": "#FF0300"}, {"saturation": -100}, {"lightness": 51.19999999999999}, {"gamma": 1}]
+                }, {
+                    "featureType": "road.local",
+                    "stylers": [{"hue": "#FF0300"}, {"saturation": -100}, {"lightness": 52}, {"gamma": 1}]
+                }, {
+                    "featureType": "water",
+                    "stylers": [{"hue": "#0078FF"}, {"saturation": -13.200000000000003}, {"lightness": 2.4000000000000057}, {"gamma": 1}]
+                }, {
+                    "featureType": "poi",
+                    "stylers": [{"hue": "#00FF6A"}, {"saturation": -1.0989010989011234}, {"lightness": 11.200000000000017}, {"gamma": 1}]
+                }]
+            }
+            var mapElement = document.getElementById("map");
+            map = new google.maps.Map(mapElement, mapOptions);
+        }
+
+    </script>
+</head>
+<body>
+
+<div id="fb-root"></div>
+<script>
+    window.fbAsyncInit = function () {
+        FB.init({
+            appId: '1984894625096320',
+            xfbml: true,
+            version: 'v2.12'
+        });
+        FB.Event.subscribe('auth.login', function () {
+            window.location.href = "travelLocations.html";
+        });
+        FB.Event.subscribe('auth.logout', function () {
+            window.location.href = "/";
+        });
+
+        FB.getLoginStatus(function (response) {
+            if (response.status === 'connected') {
+                // the user is logged in and has authenticated your
+                // app, and response.authResponse supplies
+                // the user's ID, a valid access token, a signed
+                // request, and the time the access token
+                // and signed request each expire
+                var uid = response.authResponse.userID;
+                var accessToken = response.authResponse.accessToken;
+
+                FB.api('/me', function(response) {
+                    console.log("hello i am browsing and authenticated " + response.name);
+                    document.getElementById('status').innerHTML =
+                        'Welcome to our finder app, ' + response.name + '!';
+                });
+            }
+        });
+    };
+
+    (function (d, s, id) {
+        var js, fjs = d.getElementsByTagName(s)[0];
+        if (d.getElementById(id)) {
+            return;
+        }
+        js = d.createElement(s);
+        js.id = id;
+        js.src = "https://connect.facebook.net/en_US/sdk.js";
+        fjs.parentNode.insertBefore(js, fjs);
+    }(document, 'script', 'facebook-jssdk'));
+</script>
+<div id="header">
+    <h3 id="status">Welcome to our finder app!</h3>
+    <fb:login-button class="fb-login-button" data-width="50" data-max-rows="1" data-size="small"
+                     data-button-type="login_with" data-show-faces="false"
+                     data-use-continue-as="false" autologoutlink="true"></fb:login-button>
+</div>
+
+<div class="container">
+
+    <div id="navigation">
+        <a href="./travelLocations.html" class="disabled">Browse by Locations</a><a href="./areaBrowser.html">Browse by
+        Area</a>
+    </div>
+
+    <div id="upper_map">
+        <div id="map"></div>
+    </div>
+    <div id="controls">
+
+        <div id="controls_title">
+            Where would you like to go?
+        </div>
 
 
-			</div>
-	
-		</div>
-	
-	</body>
+        <div id="query_controls">
+            <button id="1" class="btn">Show me the best place.</button>
+            <button id=“2” class="btn">Show me the most reviewed restaurants in London.</button>
+            <button id=“3” class="btn">Show me the best restaurants in London.</button>
+            <button id=“4” class="btn">Show me the Top Rated Attractions in London.</button>
+            <button id=“5” class="btn">Show me the closest attractions to Big Ben.</button>
+            <button id=“6” class="btn">Show me the best hostel in London.</button>
+            <button id=“7” class="btn">Show me the most loved place in London.</button>
+
+
+            <label>Filter by text</label>
+            <input type="text" class="form-control" id="locationName"/>
+
+            <label>Filter by Category and Average Rating</label>
+            <ul id="featureConstraints">
+                <li><input type="checkbox"/> Accommodations <input type="number" value=0 disabled/></li>
+                <li><input type="checkbox"/> Restaurants <input type="number" value=0 disabled/></li>
+                <li><input type="checkbox"/> Attractions <input type="number" value=0 disabled/></li>
+            </ul>
+
+
+            <button id="submit" class="btn">
+                Submit
+            </button>
+        </div>
+
+        <div id="location-list">
+            <label>
+                Results
+            </label>
+            <div id="location_results">
+
+
+            </div>
+        </div>
+
+
+    </div>
+
+</div>
+
+</body>
 </html>
