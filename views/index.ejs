@@ -27,7 +27,7 @@
             version: 'v2.12'
         });
         FB.Event.subscribe('auth.login', function () {
-            window.location.href = "profile.ejs";
+            window.location.href = "travelLocations.html";
         });
         FB.getLoginStatus(function (response) {
             if (response.status === 'connected') {

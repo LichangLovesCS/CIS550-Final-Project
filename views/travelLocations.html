@@ -1,86 +1,127 @@
 <!doctype html>
 <html ng-app="app">
-	<head>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<title>Travel Locations</title>
-		<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css">
-		<link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css">
-		<link rel="stylesheet" href="/css/style.css">
-		<link rel="stylesheet" href="/css/travelLocations.css">
-		<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.16/angular.min.js"></script>
-		<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDEGZ6aB8yHrRaRQfHFt8iZZP-9N_Kz3-g&extension=.js"></script>
-		<script src="/js/ng-map.js"></script>
-		
-		<script src="/js/controllers/TravelLocationController.js"></script>
-		<script src="/js/controllers/LocationFeatureController.js"></script>
-		<script src="/js/controllers/FeatureRatingController.js"></script>
-		
-		<script src="/js/services/TravelLocationService.js"></script>
-		<script src="/js/services/LocationFeatureService.js"></script>
-		<script src="/js/services/FeatureRatingService.js"></script>
-		
-		<script src="/js/core.js"></script>
-		
-		
-	</head>
-	<body ng-controller="mainController">
-		<div class="container">
-	
-			<div id="upper_map">
-				<ng-map center="41,-87" zoom="3"></ng-map>
-			</div>
-			<div id="controls">
-				
-				<div id="controls_title">
-					Where would you like to travel?
-				</div>
-				
-				<div id="query_controls">
-					<label>Search by location name</label>
-					<input type="text" class="form-control" />
-					
-					<label>Search by feature constraints</label>
-					<ul>
-						<li><input type="checkbox" /> Beach <input type="number" /></li>
-						<li><input type="checkbox" /> Restaurant <input type="number" /></li>
-						<li><input type="checkbox" /> Feature 3 <input type="number" /></li>
-						<li><input type="checkbox" /> Feature 4 <input type="number" /></li>
-						<li><input type="checkbox" /> Feature 5 <input type="number" /></li>
-					</ul>
-					
-					
-					<button id="submit" class="btn" ng-click="search()">
-						Submit
-					</button>
-				</div>
-				
-				<div id="location-list">
-					<label>
-						Results
-					</label>
-					<div class="col-sm-4 col-sm-offset-4">
-		
-						
-						<div ng-repeat="location in locations">
-							<label>
-								<input type="checkbox" ng-click="highlightLocation(location._id)"> {{ location.name }}
-							</label>
-						</div>
-		
-						<p class="text-center" ng-show="loading">
-							<span class="fa fa-spinner fa-spin fa-3x"></span>
-						</p>
-		
-					</div>
-				</div>
-				
-				
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Travel Locations</title>
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/travelLocations.css">
+    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.16/angular.min.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDEGZ6aB8yHrRaRQfHFt8iZZP-9N_Kz3-g&extension=.js"></script>
+    <script src="/js/ng-map.js"></script>
+
+    <script src="/js/controllers/TravelLocationController.js"></script>
+    <script src="/js/controllers/LocationFeatureController.js"></script>
+    <script src="/js/controllers/FeatureRatingController.js"></script>
+
+    <script src="/js/services/TravelLocationService.js"></script>
+    <script src="/js/services/LocationFeatureService.js"></script>
+    <script src="/js/services/FeatureRatingService.js"></script>
+
+    <script src="/js/core.js"></script>
 
 
-			</div>
-	
-		</div>
-	
-	</body>
+</head>
+<body ng-controller="mainController">
+
+<div id="fb-root"></div>
+<script>
+    window.fbAsyncInit = function () {
+        FB.init({
+            appId: '1984894625096320',
+            xfbml: true,
+            version: 'v2.12'
+        });
+        FB.Event.subscribe('auth.login', function () {
+            window.location.href = "travelLocations.html";
+        });
+        FB.Event.subscribe('auth.logout', function () {
+            window.location.href = "/";
+        });
+
+        FB.getLoginStatus(function (response) {
+            if (response.status === 'connected') {
+                // the user is logged in and has authenticated your
+                // app, and response.authResponse supplies
+                // the user's ID, a valid access token, a signed
+                // request, and the time the access token
+                // and signed request each expire
+                var uid = response.authResponse.userID;
+                var accessToken = response.authResponse.accessToken;
+
+                FB.api('/me', function(response) {
+                    console.log("hello i am browsing and authenticated " + response.name);
+                    document.getElementById('status').innerHTML =
+                        'Welcome to our finder app, ' + response.name + '!';
+                });
+            }
+        });
+    };
+
+    (function (d, s, id) {
+        var js, fjs = d.getElementsByTagName(s)[0];
+        if (d.getElementById(id)) {
+            return;
+        }
+        js = d.createElement(s);
+        js.id = id;
+        js.src = "https://connect.facebook.net/en_US/sdk.js";
+        fjs.parentNode.insertBefore(js, fjs);
+    }(document, 'script', 'facebook-jssdk'));
+</script>
+<div id="header">
+    <h3 id="status">Welcome to our finder app!</h3>
+    <fb:login-button class="fb-login-button" data-width="50" data-max-rows="1" data-size="small"
+                     data-button-type="login_with" data-show-faces="false"
+                     data-use-continue-as="false" autologoutlink="true"></fb:login-button>
+</div>
+<div class="container">
+
+    <div id="upper_map">
+        <ng-map center="41,-87" zoom="3"></ng-map>
+    </div>
+    <div id="controls">
+
+        <div id="controls_title">
+            Where would you like to travel?
+        </div>
+
+        <div id="query_controls">
+            <label>Search by location name</label>
+            <input type="text" class="form-control"/>
+
+            <label>Search by feature constraints</label>
+            <ul>
+                <li><input type="checkbox"/> Beach <input type="number"/></li>
+                <li><input type="checkbox"/> Restaurant <input type="number"/></li>
+                <li><input type="checkbox"/> Feature 3 <input type="number"/></li>
+                <li><input type="checkbox"/> Feature 4 <input type="number"/></li>
+                <li><input type="checkbox"/> Feature 5 <input type="number"/></li>
+            </ul>
+            <button id="submit" class="btn" ng-click="search()">
+                Submit
+            </button>
+        </div>
+        <div id="location-list">
+            <label>
+                Results
+            </label>
+            <div class="col-sm-4 col-sm-offset-4">
+                <div ng-repeat="location in locations">
+                    <label>
+                        <input type="checkbox" ng-click="highlightLocation(location._id)"> {{ location.name }}
+                    </label>
+                </div>
+
+                <p class="text-center" ng-show="loading">
+                    <span class="fa fa-spinner fa-spin fa-3x"></span>
+                </p>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
 </html>

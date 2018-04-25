@@ -177,7 +177,7 @@ module.exports = function (app, passport) {
     });
 
     app.get('/travelLocations.html', function (req, res) {
-		res.sendFile(__dirname + '/public/html/travelLocations.html');
+		res.sendFile(__dirname + '/views/travelLocations.html');
     });
     
     app.get('/locationFeatures.html', function (req, res) {
