@@ -1,7 +1,15 @@
+const mysql = require("mysql");
 const TravelLocation = require('./app/models/TravelLocation');
 const LocationFeature = require('./app/models/LocationFeature');
 const FeatureRating = require('./app/models/FeatureRating');
-const searchModels = require('./app/models/search');
+
+var mysqldb = mysql.createConnection({
+	host: "cis5502.cumb2j1rxmgj.us-east-2.rds.amazonaws.com",
+	database: "cis550",
+	user: "cis550",
+	password: "password"
+});
+mysqldb.connect();
 
 
 function getTravelLocations(res) {
@@ -18,39 +26,38 @@ module.exports = function (app, passport) {
 
     // API call for Location Browser
     app.get('/api/LocationBrowser/:name/:accommodations/:restaurants/:attractions', function (req, res) {
-
-        // RETURN RESULTS WITH AVERAGE RATINGS HIGHER THAN THE ONES BELOW, OR NOT AT ALL IF -1
+        
+        
         var name = req.params.name;
-        var accommodations = req.params.accommodations;
-        var restaurants = req.params.restaurants;
-        var attractions = req.params.attractions;
-        res.json([
-            {
-                name: "Test1",
-                address: "2374 JKHjhs Rd",
-                lat: 50,
-                lng: 30,
-                type: "Accomodation",
-                rating: 4.5,
-            },
-            {
-                name: "Test2",
-                address: "2374 JKHjhs Rd",
-                lat: 55,
-                lng: 31,
-                type: "Restaurant",
-                rating: 4.5,
-            },
-            {
-                name: "Test3",
-                address: "2374 JKHjhs Rd",
-                lat: 52,
-                lng: 35,
-                type: "Accomodation",
-                rating: 4.5,
-            },
-        ]);
-
+        var accommodationsLimit = req.params.accommodations;
+        var restaurantsLimit = req.params.restaurants;
+        var attractionsLimit = req.params.attractions;
+        
+        var nameClause = (name == "" || name == undefined) ? "" : ' AND name LIKE "%'+name+'%"';
+        
+        var attractionsRatingsLimited = "(SELECT location_id AS id, AVG(polarity) AS averageRating FROM reviews GROUP BY location_id HAVING AVG(polarity) > "+attractionsLimit+")";
+        var attractions = "SELECT L.*, R.averageRating AS rating FROM locations L INNER JOIN "+attractionsRatingsLimited+" R ON L.id=R.id WHERE category='attraction'"+nameClause;
+        
+        var accommodationsRatingsLimited = "(SELECT location_id AS id, AVG(polarity) AS averageRating FROM reviews GROUP BY location_id HAVING AVG(polarity) > "+accommodationsLimit+")";
+        var accommodations = "SELECT L.*, R.averageRating AS rating FROM locations L INNER JOIN "+accommodationsRatingsLimited+" R ON L.id=R.id WHERE category='accommodation'"+nameClause;
+        
+        var restaurantsRatingsLimited = "(SELECT location_id AS id, AVG(polarity) AS averageRating FROM reviews GROUP BY location_id HAVING AVG(polarity) > "+restaurantsLimit+")";
+        var restaurants = "SELECT L.*, R.averageRating AS rating FROM locations L INNER JOIN "+restaurantsRatingsLimited+" R ON L.id=R.id WHERE category='restaurant'"+nameClause;
+        
+        var query = "(" + attractions + ") UNION (" + accommodations + ") UNION (" + restaurants + ")";
+        
+        console.log(query);
+        
+        mysqldb.query(query, function(err, data) {
+			var results = JSON.parse(JSON.stringify(data));
+			var responseData = [];
+			results.forEach(function(elem) {
+				console.log(elem);
+				responseData.push(elem);
+			});
+			res.json(responseData);
+		});
+    
     });
 
     // API call for Area Browser
@@ -147,48 +154,70 @@ module.exports = function (app, passport) {
     app.get('/api/SearchQuestion/:id', function (req, res) {
         var id = req.params.id;
 
-
+		var query;
         switch (id) {
-            // The most popular Hotel for foreigners
+	        
+            // most checked into place
             case "1":
-                var docs = searchModels.londonReviewsCombine.find({classify: 'accommodation'}).sort({language_kind: -1}).limit(10)
-                var details = searchModels.fetchDetailList(docs)
-                res.json(details)
+				query = "SELECT * FROM locations ORDER BY checkins DESC";                
                 break;
-            // The best restaurants in London
+                
+            // most reviewed pubs
             case "2":
-                var docs = searchModels.londonReviewsCombine.find({classify: 'restaurant'}).sort({average_rate: -1}).limit(10)
-                var details = searchModels.fetchDetailList(docs)
-                res.json(details)
+                query = "SELECT L.*, R.totalReviews FROM locations L INNER JOIN (SELECT location_id AS id, COUNT(id) AS totalReviews FROM reviews GROUP BY location_id) R ON L.id=R.id WHERE subcategory='pub' ORDER BY R.totalReviews DESC";                
                 break;
-            // The Top Rated Attractions in London
+                
+            // best reviewed restaurants
             case "3":
-                var docs = searchModels.londonReviewsCombine.find({classify: 'attraction'}).sort({reviews_count: -1}).limit(10)
-                var details = searchModels.fetchDetailList(docs)
-                res.json(details)
+                query = "SELECT L.*, R.averageRating FROM locations L INNER JOIN (SELECT location_id AS id, AVG(polarity) AS averageRating FROM reviews GROUP BY location_id) R ON L.id=R.id WHERE category='restaurant' ORDER BY R.averageRating DESC";                
                 break;
-            // The closest attractions to Big Ben
+                
+            // The Top Rated Attractions in London
             case "4":
-                var docs = searchModels.attractionsDetails.find().sort({ben_lat_dis: -1}).limit(10)
-                var details = searchModels.fetchDetailList(docs, 'id')
-                res.json(details)
-                break;
-            // The most reviewed hotels
+               query = "SELECT L.*, R.averageRating FROM locations L INNER JOIN (SELECT location_id AS id, AVG(polarity) AS averageRating, COUNT(id) AS totalReviews FROM reviews GROUP BY location_id) R ON L.id=R.id WHERE category='attraction' ORDER BY R.averageRating DESC, R.totalReviews DESC";                
+               break;
+                
+            // The closest attractions to Big Ben
             case "5":
-                var docs = searchModels.londonReviewsCombine.find({classify: 'accommodation'}).sort({reviews_count: -1}).limit(10)
-                var details = searchModels.fetchDetailList(docs)
-                res.json(details)
+                query = "SELECT locations.*, SQRT(POW((locations.lat - 51.500696), 2) + POW((locations.lng + 0.124606), 2)) AS distance FROM locations ORDER BY distance";                
                 break;
-            // The popular venue?
+                
+            // best type of location
             case "6":
-                var docs = searchModels.londonReviewsCombine.find({classify: 'attraction'}).sort({averate_polarity: -1}).limit(10)
-                var details = searchModels.fetchDetailList(docs)
-                res.json(details)
+                query = "SELECT subcategory, AVG(R.averageRating) AS averageSubcategoryRating FROM locations L INNER JOIN (SELECT location_id AS id, AVG(polarity) AS averageRating FROM reviews GROUP BY location_id) R ON L.id=R.id GROUP BY subcategory ORDER BY averageSubcategoryRating DESC";                
                 break;
+                
+            // the best of the best attraction type
+            case "7":
+                query = "SELECT * FROM (SELECT L.*, R.averageRating AS averageLocationRating, R.totalRatings AS totalRatings FROM locations L INNER JOIN (SELECT location_id AS id, AVG(polarity) AS averageRating, COUNT(id) AS totalRatings FROM reviews GROUP BY location_id) R ON L.id=R.id) AS locationsWithRatings1 WHERE subcategory=(SELECT subcategory FROM (SELECT L.*, R.averageRating AS averageLocationRating, R.totalRatings AS totalRatings FROM locations L INNER JOIN (SELECT location_id AS id, AVG(polarity) AS averageRating, COUNT(id) AS totalRatings FROM reviews GROUP BY location_id) R ON L.id=R.id) AS locationsWithRatings2 WHERE category='attraction' GROUP BY subcategory HAVING COUNT(id) > 1 ORDER BY AVG(averageLocationRating) DESC, COUNT(totalRatings) DESC LIMIT 1) ORDER BY averageLocationRating DESC, totalRatings DESC";                
+                break;
+                /*
+	                
+	                The below query finds the best subcategory of attractions that have more than one location, and displays the top locations within that subcategory ordered by rating and total rating count
+	                
+					SELECT * FROM 
+						(SELECT L.*, R.averageRating AS averageLocationRating, R.totalRatings AS totalRatings FROM locations L INNER JOIN (SELECT location_id AS id, AVG(polarity) AS averageRating, COUNT(id) AS totalRatings FROM reviews GROUP BY location_id) R ON L.id=R.id) AS locationsWithRatings1 
+					WHERE subcategory=
+						(SELECT subcategory FROM 
+							(SELECT L.*, R.averageRating AS averageLocationRating, R.totalRatings AS totalRatings FROM locations L INNER JOIN (SELECT location_id AS id, AVG(polarity) AS averageRating, COUNT(id) AS totalRatings FROM reviews GROUP BY location_id) R ON L.id=R.id) AS locationsWithRatings2 
+						WHERE category='attraction' GROUP BY subcategory HAVING COUNT(id) > 1 ORDER BY AVG(averageLocationRating) DESC, COUNT(totalRatings) DESC LIMIT 1) 
+					ORDER BY averageLocationRating DESC, totalRatings DESC
+					*/
             default:
                 res.redirect('/travelLocations.html')
                 break;
+                
         }
+        console.log(query);
+        mysqldb.query(query, function(err, data) {
+			var results = JSON.parse(JSON.stringify(data));
+			var responseData = [];
+			results.forEach(function(elem) {
+				console.log(elem);
+				responseData.push(elem);
+			});
+			res.json(responseData);
+		});
 
     });
 
