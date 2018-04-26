@@ -4,7 +4,7 @@ const LocationFeature = require('./app/models/LocationFeature');
 const FeatureRating = require('./app/models/FeatureRating');
 
 var mysqldb = mysql.createConnection({
-	host: "cis5502.cumb2j1rxmgj.us-east-2.rds.amazonaws.com",
+	host: "cis5503.cumb2j1rxmgj.us-east-2.rds.amazonaws.com",
 	database: "cis550",
 	user: "cis550",
 	password: "password"
@@ -28,7 +28,7 @@ module.exports = function (app, passport) {
     app.get('/api/LocationBrowser/:name/:accommodations/:restaurants/:attractions', function (req, res) {
         
         
-        var name = req.params.name;
+        var name = (req.params.name == -1) ? "" : req.params.name;
         var accommodationsLimit = req.params.accommodations;
         var restaurantsLimit = req.params.restaurants;
         var attractionsLimit = req.params.attractions;
@@ -61,44 +61,28 @@ module.exports = function (app, passport) {
     });
 
     // API call for Area Browser
-    app.get('/api/AreaBrowser/:left/:bottom/:top/:right/:sort', function (req, res) {
+    app.get('/api/AreaBrowser/:leftB/:bottomB/:topB/:rightB/:sortB', function (req, res) {
 
 
-        var left = req.params.left;
-        var right = req.params.right;
-        var top = req.params.top;
-        var bottom = req.params.bottom;
+        var leftB = req.params.leftB;
+        var rightB = req.params.rightB;
+        var topB = req.params.topB;
+        var bottomB = req.params.bottomB;
 
-        var sort = req.params.sort;
+        var sortB = req.params.sortB;
 
         // RETURN RESULTS WITHIN THESE BOUNDS
-
-        res.json([
-            {
-                name: "Test1",
-                address: "2374 JKHjhs Rd",
-                lat: 50,
-                lng: 30,
-                type: "Accomodation",
-                rating: 4.5,
-            },
-            {
-                name: "Test2",
-                address: "2374 JKHjhs Rd",
-                lat: 55,
-                lng: 31,
-                type: "Restaurant",
-                rating: 4.5,
-            },
-            {
-                name: "Test3",
-                address: "2374 JKHjhs Rd",
-                lat: 52,
-                lng: 35,
-                type: "Accomodation",
-                rating: 4.5,
-            },
-        ]);
+        var query = "SELECT L.*, R.averageRating AS averageRating FROM locations L INNER JOIN (SELECT location_id AS id, AVG(polarity) AS averageRating FROM reviews GROUP BY location_id) R ON L.id=R.id WHERE lat < "+topB+" AND lat > "+bottomB+" AND lng < "+rightB+" AND lng > "+leftB+" ORDER BY "+sortB;
+		console.log(query);
+        mysqldb.query(query, function(err, data) {
+			var results = JSON.parse(JSON.stringify(data));
+			var responseData = [];
+			results.forEach(function(elem) {
+				console.log(elem);
+				responseData.push(elem);
+			});
+			res.json(responseData);
+		});
 
 
     });
